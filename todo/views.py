@@ -40,6 +40,9 @@ def user_register(request):
     return render(request, 'register.html', {'form': form})
 
 def user_login(request):
+    '''
+    @todo: Message to non approved users
+    '''
     if request.method == 'POST':
         form = LoginForm(request.POST)
         if form.is_valid():
