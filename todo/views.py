@@ -22,9 +22,17 @@ def user_register(request):
             password = form.cleaned_data['password']
             first_name = form.cleaned_data['first_name']
             last_name = form.cleaned_data['last_name']
-            #Group.objects.
-            user = User.objects.create_user(username=username, email=username, password=password, first_name=first_name, last_name=last_name, active=False)
-            print(user)
+            email_domain = username[username.find('@')+1:]
+            user = User.objects.create_user(username=username, email=username, password=password, first_name=first_name, last_name=last_name)
+            new_group, created = Group.objects.get_or_create(name=email_domain)
+            if created:
+                user.is_staff = True
+                user.is_active = True
+            else:
+                user.is_staff = False
+                user.is_active = False
+            user.save()            
+            new_group.user_set.add(user)
             return HttpResponseRedirect('/thanks/')
     else:
         form = RegisterForm()
@@ -53,8 +61,24 @@ def user_logout(request):
 @login_required
 def user_dashboard(request):
     user = request.user
-    print(dir(user))
+    context = {}
     if user.is_authenticated:
-        return render(request, 'dashboard.html', {'name':user.first_name})
+        context['name'] = user.first_name
+        if user.is_staff:
+            user_group = user.groups.all()[0]
+            #all_users = User.objects.all().filter(groups__name=user_group)
+            all_users = user_group.user_set.all().exclude(username=user).filter(is_active=False)
+            print(all_users)
+            context['all_users'] = [user for user in all_users]
+        return render(request, 'dashboard.html', context=context)
     else:
         return render(request, 'home.html')
+
+@login_required
+def approve(request, user_id=None):
+    user = request.user
+    if user.is_authenticated:
+        user_2b_approved = User.objects.filter(id=user_id)[0]
+        user_2b_approved.is_active = True
+        user_2b_approved.save()
+        return HttpResponseRedirect('/dashboard/')

@@ -1,5 +1,15 @@
 <h1>HI {{name}}</h1>
 
+<table> 
+        {% for user in all_users %}
+    <tr>
+        <td>
+            {{user}} <a href="{% url 'approve' user_id=user.id  %}">Approve</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
 <br /> <br /><br /><br /><br /><br />
 
 <a href="{% url 'logout' %}">Logout</a>
