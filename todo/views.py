@@ -4,7 +4,8 @@ from django.contrib.auth import login, logout, authenticate
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.urls import reverse
-from .forms import RegisterForm, LoginForm
+from .forms import RegisterForm, LoginForm, TaskForm
+from .models import Task
 
 
 # Create your views here.
@@ -66,13 +67,13 @@ def user_dashboard(request):
     user = request.user
     context = {}
     if user.is_authenticated:
-        context['name'] = user.first_name
+        context['user_obj'] = user
         if user.is_staff:
             user_group = user.groups.all()[0]
             #all_users = User.objects.all().filter(groups__name=user_group)
             all_users = user_group.user_set.all().exclude(username=user).filter(is_active=False)
-            print(all_users)
             context['all_users'] = [user for user in all_users]
+
         return render(request, 'dashboard.html', context=context)
     else:
         return render(request, 'home.html')
@@ -85,3 +86,40 @@ def approve(request, user_id=None):
         user_2b_approved.is_active = True
         user_2b_approved.save()
         return HttpResponseRedirect('/dashboard/')
+
+
+@login_required
+def add_task(request):
+    user = request.user
+    if request.method == 'POST':
+        form = TaskForm(request.POST)
+        if form.is_valid():
+            task_data = form.cleaned_data
+            new_task = Task.objects.create(name=task_data['name'], description=task_data['description'], assigned_to=task_data['assigned_to'])
+            return HttpResponseRedirect('/thanks/')
+    else:
+        form = TaskForm()
+        user_group = user.groups.all()[0]
+        form.fields['assigned_to'].queryset = User.objects.filter(groups__name=user_group, is_active=True)
+    return render(request, 'add_task.html', {'form': form})
+
+@login_required
+def view_tasks(request):
+    user = request.user
+    context = {}
+    if user.is_authenticated:
+        context['user_obj'] = user
+        all_tasks = Task.objects.filter(assigned_to=user, completed=False)
+        context['all_tasks'] = all_tasks
+    return render(request, 'view_tasks.html', context=context)
+
+@login_required
+def task_completed(request):
+    get_data = request.get_full_path_info() # /task_completed/?3=False
+    task_ids = get_data.replace('/task_completed/?', '').split('&')
+    for task in task_ids:
+        task_id, task_status = task.split('=') 
+        task = Task.objects.get(pk=int(task_id))
+        task.completed = True
+        task.save()
+    return HttpResponseRedirect('/view_tasks/')

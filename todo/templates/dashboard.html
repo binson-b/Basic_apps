@@ -1,5 +1,6 @@
-<h1>HI {{name}}</h1>
+<h1>HI {{user_obj.first_name}}</h1>
 
+{% if user_obj.is_staff %}
 <table> 
         {% for user in all_users %}
     <tr>
@@ -9,6 +10,9 @@
     </tr>
     {% endfor %}
 </table>
+{% endif %}
+<a href="{% url 'add_task' %}">Add task</a>
+<a href="{% url 'view_tasks' %}">View your task</a>
 
 <br /> <br /><br /><br /><br /><br />
 

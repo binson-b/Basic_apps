@@ -1,0 +1,15 @@
+<form action="/task_completed/">
+<table> 
+        <th>Name</th>
+        <th>Description</th>
+        <th>Completed</th>
+    {% for task in all_tasks %}
+<tr>
+    <td>{{task.name}}</td> 
+    <td>{{task.description}}</td> 
+    <td><input type="checkbox" name={{task.id}} value={{task.completed}}></td>
+</tr>
+{% endfor %}
+</table>
+<input type="submit" value="Submit">
+</form>
