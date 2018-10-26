@@ -9,6 +9,8 @@ urlpatterns = [
     path('dashboard/', views.user_dashboard, name='dashboard'),
     path('approve/<int:user_id>', views.approve, name='approve'),
     path('add_task/', views.add_task, name='add_task'),
+    path('edit_task/<int:task_id>', views.edit_task, name='edit_task'),
+    path('edit_task/', views.edit_task, name='edit_task'),
     path('view_tasks/', views.view_tasks, name='view_tasks'),
     path('task_completed/', views.task_completed, name='task_completed'),
 ]

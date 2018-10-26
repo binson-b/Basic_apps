@@ -1,12 +1,11 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User, Group, Permission
 from django.contrib.auth import login, logout, authenticate
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponseForbidden
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from .forms import RegisterForm, LoginForm, TaskForm
 from .models import Task
-
 
 # Create your views here.
 
@@ -95,7 +94,8 @@ def add_task(request):
         form = TaskForm(request.POST)
         if form.is_valid():
             task_data = form.cleaned_data
-            new_task = Task.objects.create(name=task_data['name'], description=task_data['description'], assigned_to=task_data['assigned_to'])
+            new_task = Task.objects.create(name=task_data['name'], description=task_data['description'], assigned_to=task_data['assigned_to'],
+            created_by=user)
             return HttpResponseRedirect('/thanks/')
     else:
         form = TaskForm()
@@ -123,3 +123,23 @@ def task_completed(request):
         task.completed = True
         task.save()
     return HttpResponseRedirect('/view_tasks/')
+
+@login_required
+def edit_task(request, task_id=None):
+    user = request.user
+    context = {}
+    if task_id:
+        task = Task.objects.get(pk=task_id)
+        if user != task.created_by:
+            return HttpResponseForbidden()
+    else:
+        task = Task()
+    form = TaskForm(request.POST or None, instance=task)            
+    context['form'] = form
+    if request.method == 'POST' and form.is_valid():
+        f = form.save(commit=False)
+        f.created_by = user
+        f.save()
+        return HttpResponseRedirect('/view_tasks/')
+
+    return render(request, 'edit_task.html', context=context)

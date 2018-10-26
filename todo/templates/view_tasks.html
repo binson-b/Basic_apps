@@ -5,7 +5,7 @@
         <th>Completed</th>
     {% for task in all_tasks %}
 <tr>
-    <td>{{task.name}}</td> 
+    <td><a href="{% url 'edit_task' task_id=task.id %}">{{task.name}}</a></td> 
     <td>{{task.description}}</td> 
     <td><input type="checkbox" name={{task.id}} value={{task.completed}}></td>
 </tr>
