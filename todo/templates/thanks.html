@@ -1,0 +1,9 @@
+{% if user %}
+<!-- for registerd users -->
+Hi, {{user.first_name}}
+{{message}}
+{% else %}
+<!-- for AnonymousUser -->
+{{message}}
+<a href="{% url 'register' %}">Register</a>
+{% endif %}

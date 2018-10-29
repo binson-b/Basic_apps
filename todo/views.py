@@ -7,16 +7,18 @@ from django.urls import reverse
 from .forms import RegisterForm, LoginForm, TaskForm
 from .models import Task
 
-# Create your views here.
-
 def home(request):
     pass
     return render(request, 'home.html')
 
+def thanks(request):
+    pass
+    return render(request, 'thanks.html')
 
 def user_register(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
+        context = {}
         if form.is_valid():
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
@@ -33,23 +35,34 @@ def user_register(request):
                 user.is_active = False
             user.save()            
             new_group.user_set.add(user)
-            return HttpResponseRedirect('/thanks/')
+            context['user'] = user
+            context['message'] = 'Thank you for resgitering with us. Your account will be activated in 60 mins.'
+            return render(request, 'thanks.html', context=context)
     else:
         form = RegisterForm()
 
     return render(request, 'register.html', {'form': form})
 
 def user_login(request):
-    '''
-    @todo: Message to non approved users
-    '''
     if request.method == 'POST':
         form = LoginForm(request.POST)
+        context = {}
         if form.is_valid():
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
             user = authenticate(request, username=username, password=password)
-            login(request, user)
+            if user:
+                login(request, user)
+            else:
+                user = User.objects.filter(username=username)
+                if not user:
+                    context['user'] = user
+                    context['message'] = '''Please Register to use the cool features'''
+                else:
+                    user = user[0]
+                    context['user'] = user
+                    context['message'] = 'Your account will be activated within 60 mins after the registration.'
+                return render(request, 'thanks.html', context=context)
             return HttpResponseRedirect('/dashboard/')
             
     else:

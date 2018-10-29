@@ -9,7 +9,7 @@ class TrackingMiddleware:
     # Code to be executed for each request before
     # the view (and later middleware) are called.
     
-        print('%s %s' %(request.user, request)  )
+        # print('%s %s' %(request.user, request) )
         logger.debug('%s %s' %(request.user, request))
         response = self.get_response(request)
 
